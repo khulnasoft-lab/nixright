@@ -1,0 +1,50 @@
+name: CI
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+jobs:
+  xrefcheck:
+    name: Check references
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          path: untrusted-pr
+
+      - uses: serokell/xrefcheck-action@v1
+        with:
+          xrefcheck-args: "--root untrusted-pr"
+
+  codeowners:
+    name: Validate codeowners
+    runs-on: ubuntu-latest
+    steps:
+      - uses: cachix/install-nix-action@v26
+
+      - uses: actions/checkout@v4
+        with:
+          path: trusted-base
+
+      - name: Build codeowners validator
+        run: nix-build trusted-base -A packages.codeowners-validator
+
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          path: untrusted-pr
+
+  nix-build:
+    name: Build with Nix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v26
+        with:
+          nix_version: 2.15.0
+
+      - name: Build with Nix
+        run: nix-build
