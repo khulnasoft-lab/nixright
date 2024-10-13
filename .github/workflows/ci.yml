@@ -13,7 +13,7 @@ jobs:
           path: src # Checkout the entire repo into a 'src' folder
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v26
+        uses: cachix/install-nix-action@v30
         with:
           nix_version: 2.15.0
 
